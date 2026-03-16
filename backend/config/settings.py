@@ -118,9 +118,8 @@ if _db_url:
     DATABASES = {'default': _dj_db_url.parse(_db_url, conn_max_age=600)}
 
 # ─── CSRF for production ───────────────────────────────────────────────────────
-_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
-if _csrf_origins:
-    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',')]
+_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.railway.app,https://*.up.railway.app')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',')]
 
 # ─── DRF ──────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
