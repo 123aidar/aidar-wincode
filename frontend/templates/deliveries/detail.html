@@ -1,0 +1,126 @@
+﻿{% extends "base.html" %}
+{% block title %}Поставка {{ delivery.invoice_number }} — ВинАвто{% endblock %}
+{% block page_title %}Поставка {{ delivery.invoice_number }}{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <a href="{% url 'deliveries_list' %}" style="color:var(--text-muted);font-size:13px;">← Все поставки</a>
+        <h1 style="margin-top:4px;">{{ delivery.invoice_number }}</h1>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="{% url 'delivery_invoice' pk=delivery.pk %}" class="btn btn-primary" target="_blank">🧾 Накладная</a>
+        {% if delivery.status == 'confirmed' %}
+        <form method="post" action="{% url 'delivery_receive' pk=delivery.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Принять поставку и зачислить запчасти на склад?')">
+                ✅ Принять поставку
+            </button>
+        </form>
+        <form method="post" action="{% url 'delivery_cancel' pk=delivery.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" style="background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);"
+                    onclick="return confirm('Отменить поставку?')">
+                Отменить
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+    <!-- Info card -->
+    <div class="glass-card">
+        <h3 style="margin-bottom:14px;">Информация</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;">
+                <span class="text-muted">Статус</span>
+                <span>
+                    {% if delivery.status == 'received' %}<span class="badge badge-success">{{ delivery.get_status_display }}</span>
+                    {% elif delivery.status == 'confirmed' %}<span class="badge badge-info">{{ delivery.get_status_display }}</span>
+                    {% elif delivery.status == 'cancelled' %}<span class="badge badge-danger">{{ delivery.get_status_display }}</span>
+                    {% else %}<span class="badge badge-warning">{{ delivery.get_status_display }}</span>{% endif %}
+                </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+                <span class="text-muted">Поставщик</span>
+                <span><strong>{{ delivery.supplier.name }}</strong></span>
+            </div>
+            {% if delivery.supplier.contact_person %}
+            <div style="display:flex;justify-content:space-between;">
+                <span class="text-muted">Контактное лицо</span>
+                <span>{{ delivery.supplier.contact_person }}</span>
+            </div>
+            {% endif %}
+            <div style="display:flex;justify-content:space-between;">
+                <span class="text-muted">Дата поставки</span>
+                <span>{{ delivery.delivery_date|date:"d.m.Y" }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+                <span class="text-muted">Создана</span>
+                <span>{{ delivery.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            {% if delivery.created_by %}
+            <div style="display:flex;justify-content:space-between;">
+                <span class="text-muted">Создал</span>
+                <span>{{ delivery.created_by.get_full_name|default:delivery.created_by.username }}</span>
+            </div>
+            {% endif %}
+            {% if delivery.notes %}
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <span class="text-muted">Примечания</span>
+                <span style="background:rgba(255,255,255,0.04);padding:8px 10px;border-radius:6px;font-size:13px;">{{ delivery.notes }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Total card -->
+    <div class="glass-card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;">
+        <div style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;">Сумма поставки</div>
+        <div style="font-size:42px;font-weight:800;color:#10b981;">{{ delivery.total_amount|floatformat:2 }} ₽</div>
+        <div style="font-size:13px;color:var(--text-muted);">{{ delivery.items.count }} позиц.</div>
+        {% if delivery.stock_updated %}
+        <div style="margin-top:8px;background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.3);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;">✓ Склад обновлён</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Items -->
+<div class="glass-card">
+    <h3 style="margin-bottom:14px;">Позиции поставки</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Запчасть</th>
+                <th>Арт. номер</th>
+                <th class="text-right">Кол-во</th>
+                <th class="text-right">Цена за ед.</th>
+                <th class="text-right">Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in delivery.items.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><strong>{{ item.part.name }}</strong></td>
+                <td class="text-muted">{{ item.part.part_number|default:"—" }}</td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">{{ item.unit_price|floatformat:2 }} ₽</td>
+                <td class="text-right"><strong>{{ item.line_total|floatformat:2 }} ₽</strong></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted" style="text-align:center;padding:30px;">Позиций нет.</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="background:rgba(16,185,129,.06);">
+                <td colspan="5" style="text-align:right;font-weight:700;padding:12px;">ИТОГО:</td>
+                <td class="text-right" style="font-weight:800;font-size:16px;color:#10b981;">{{ delivery.total_amount|floatformat:2 }} ₽</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endblock %}

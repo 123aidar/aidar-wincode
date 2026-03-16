@@ -1,0 +1,52 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Добавить пользователя — ВинАвто{% endblock %}
+{% block page_title %}Добавить пользователя{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Новый пользователь</h1>
+    <a href="{% url 'users_list' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Логин *</label>
+            <input type="text" name="username" class="form-input" required>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Имя</label>
+                <input type="text" name="first_name" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Фамилия</label>
+                <input type="text" name="last_name" class="form-input">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-input">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Телефон</label>
+            <input type="text" name="phone" class="form-input">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Роль *</label>
+            <select name="role" class="form-select" required>
+                <option value="mechanic">Механик</option>
+                <option value="manager">Менеджер</option>
+                <option value="admin">Администратор</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Пароль *</label>
+            <input type="password" name="password" class="form-input" required minlength="8">
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Создать</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Регистрация авто — ВинАвто{% endblock %}
+{% block page_title %}Регистрация авто{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Регистрация автомобиля</h1>
+    <a href="{% url 'cars_list' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Владелец (Клиент) *</label>
+            <div style="position:relative;">
+                <input type="text" id="clientSearch" class="form-input" placeholder="Начните вводить имя или телефон..." autocomplete="off" style="width:100%;">
+                <input type="hidden" name="client" id="clientId" required>
+                <div id="clientDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:rgba(15,15,40,0.97);border:1px solid var(--border-color);border-radius:8px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+                    {% for c in clients %}
+                    <div class="client-opt" data-id="{{ c.pk }}" data-text="{{ c.name }} — {{ c.phone }}" style="padding:10px 14px;cursor:pointer;transition:background 0.15s;">{{ c.name }} — {{ c.phone }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Марка *</label>
+                <input type="text" name="brand" class="form-input" placeholder="Toyota" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Модель *</label>
+                <input type="text" name="model" class="form-input" placeholder="Camry" required>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Год *</label>
+                <input type="number" name="year" class="form-input" placeholder="2024" required min="1900" max="2030">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Цвет</label>
+                <input type="text" name="color" class="form-input" placeholder="Серебристый">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Гос. номер *</label>
+            <input type="text" name="license_plate" class="form-input" placeholder="А123БВ 77" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">VIN</label>
+            <input type="text" name="vin" class="form-input" placeholder="17-значный VIN" maxlength="17">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Пробег (км)</label>
+            <input type="number" name="mileage" class="form-input" placeholder="50000" min="0">
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Зарегистрировать</button>
+    </form>
+</div>
+
+<script>
+const clientSearch = document.getElementById('clientSearch');
+const clientIdInput = document.getElementById('clientId');
+const clientDropdown = document.getElementById('clientDropdown');
+const clientOpts = Array.from(document.querySelectorAll('.client-opt'));
+
+clientSearch.addEventListener('focus', function() { filterDropdown(this.value); });
+clientSearch.addEventListener('input', function() {
+    clientIdInput.value = '';
+    filterDropdown(this.value);
+});
+
+function filterDropdown(query) {
+    const q = query.trim().toLowerCase();
+    let visible = 0;
+    clientOpts.forEach(opt => {
+        const match = !q || opt.dataset.text.toLowerCase().includes(q);
+        opt.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    clientDropdown.style.display = visible > 0 ? '' : 'none';
+}
+
+clientOpts.forEach(opt => {
+    opt.addEventListener('mouseenter', function() { this.style.background = 'rgba(139,92,246,0.25)'; });
+    opt.addEventListener('mouseleave', function() { this.style.background = ''; });
+    opt.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        clientSearch.value = this.dataset.text;
+        clientIdInput.value = this.dataset.id;
+        clientDropdown.style.display = 'none';
+    });
+});
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#clientSearch') && !e.target.closest('#clientDropdown')) {
+        clientDropdown.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

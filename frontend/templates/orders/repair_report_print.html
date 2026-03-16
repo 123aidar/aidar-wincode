@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Отчёт о ремонте — Заказ №{{ order.pk }}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 16px 80px;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+
+    .page-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-print { background: #6366f1; color: #fff; }
+    .btn-back  { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+    .btn:hover { opacity: 0.85; }
+
+    /* Report */
+    .report {
+      width: 720px;
+      background: #fff;
+      color: #111;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    /* Header band */
+    .report-header {
+      background: #111827;
+      color: #fff;
+      padding: 28px 36px 22px;
+    }
+    .report-header .company { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+    .report-header .company-sub { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .report-header .doc-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 18px;
+    }
+    .report-header .doc-title { font-size: 16px; font-weight: 600; color: #e2e8f0; letter-spacing: 0.5px; text-transform: uppercase; }
+    .report-header .doc-num   { font-size: 13px; color: #9ca3af; margin-top: 3px; }
+    .report-header .status-badge {
+      background: #10b981;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 16px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Body */
+    .report-body { padding: 28px 36px; }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .info-cell {
+      padding: 12px 16px;
+      border-right: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .info-cell:nth-child(2n) { border-right: none; }
+    .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+    .info-cell .ic-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .info-cell .ic-value { font-size: 14px; font-weight: 600; color: #111; }
+
+    /* Section */
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #6b7280;
+      margin-bottom: 8px;
+      margin-top: 20px;
+    }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    .data-table th {
+      background: #f3f4f6;
+      color: #374151;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 9px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .data-table th.r { text-align: right; }
+    .data-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f3f4f6;
+      color: #1f2937;
+    }
+    .data-table td.r { text-align: right; font-weight: 600; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: #f9fafb; }
+
+    .empty-row td { color: #9ca3af; text-align: center; font-style: italic; }
+
+    /* Total */
+    .total-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 16px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-top: 20px;
+    }
+    .total-bar .tl { font-size: 14px; color: #6b7280; font-weight: 500; }
+    .total-bar .tv { font-size: 22px; font-weight: 700; color: #111; }
+
+    /* Notes */
+    .notes-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: #374151;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .report-footer {
+      border-top: 1px solid #e5e7eb;
+      margin-top: 28px;
+      padding-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    /* Mechanics */
+    .mechanic-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .mechanic-chip {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+
+    /* Print */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .actions { display: none !important; }
+      .report { box-shadow: none; width: 100%; }
+      .report-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .data-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="actions">
+    <a href="/orders/{{ order.pk }}/" class="btn btn-back">← К заказу</a>
+    <button class="btn btn-print" onclick="window.print()">🖨 Распечатать / PDF</button>
+  </div>
+
+  <div class="report">
+
+    <!-- Header -->
+    <div class="report-header">
+      <div class="company">ВинАвто</div>
+      <div class="company-sub">Профессиональный автосервис · ИНН 0000000000</div>
+      <div class="doc-meta">
+        <div>
+          <div class="doc-title">Акт выполненных работ</div>
+          <div class="doc-num">Заказ-наряд № {{ order.pk }} &nbsp;·&nbsp; {{ report.created_at|date:"d.m.Y" }}</div>
+        </div>
+        <div class="status-badge">Выполнено</div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="report-body">
+
+      <!-- Info grid -->
+      <div class="info-grid">
+        <div class="info-cell">
+          <div class="ic-label">Клиент</div>
+          <div class="ic-value">{{ order.client.name }}</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-label">Телефон</div>
+          <div class="ic-value">{{ order.client.phone|default:"—" }}</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-label">Автомобиль</div>
+          <div class="ic-value">{{ order.car.brand }} {{ order.car.model }} {{ order.car.year|default:"" }}</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-label">Гос. номер</div>
+          <div class="ic-value">{{ order.car.license_plate }}</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-label">Принят в ремонт</div>
+          <div class="ic-value">{{ report.started_at|date:"d.m.Y H:i" }}</div>
+        </div>
+        <div class="info-cell">
+          <div class="ic-label">Завершён</div>
+          <div class="ic-value">{{ report.finished_at|date:"d.m.Y H:i" }}</div>
+        </div>
+      </div>
+
+      <!-- Mechanics -->
+      {% with mechanics=report.mechanics.all %}{% if mechanics %}
+      <div class="section-title">Исполнители</div>
+      <div class="mechanic-list">
+        {% for m in mechanics %}
+        <span class="mechanic-chip">{{ m.get_full_name|default:m.username }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}{% endwith %}
+
+      <!-- Services -->
+      <div class="section-title">Выполненные работы</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Наименование услуги</th>
+            <th class="r" style="width:130px">Стоимость</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in order.order_services.all %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ s.service.name }}</td>
+            <td class="r">{{ s.price|floatformat:2 }} ₽</td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td colspan="3">Работы не указаны</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Parts -->
+      <div class="section-title">Использованные запчасти и материалы</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Наименование</th>
+            <th class="r" style="width:70px">Кол-во</th>
+            <th class="r" style="width:110px">Цена за ед.</th>
+            <th class="r" style="width:120px">Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in parts %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ p.part.name }}</td>
+            <td class="r">{{ p.quantity }}</td>
+            <td class="r">{{ p.price|floatformat:2 }} ₽</td>
+            <td class="r">{{ p.line_total|floatformat:2 }} ₽</td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row"><td colspan="5">Запчасти не использовались</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Total -->
+      <div class="total-bar">
+        <span class="tl">ИТОГО К ОПЛАТЕ:</span>
+        <span class="tv">{{ report.total_price|floatformat:2 }} ₽</span>
+      </div>
+
+      <!-- Notes -->
+      {% if order.repair_notes %}
+      <div class="section-title">Примечания</div>
+      <div class="notes-box">{{ order.repair_notes }}</div>
+      {% endif %}
+
+      <!-- Footer -->
+      <div class="report-footer">
+        <span>Дата формирования: {{ report.created_at|date:"d.m.Y H:i" }}</span>
+        <span>ВинАвто · vinauto.ru</span>
+      </div>
+
+    </div><!-- /.report-body -->
+  </div><!-- /.report -->
+</div>
+</body>
+</html>

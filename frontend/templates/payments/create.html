@@ -1,0 +1,40 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Оформить платёж — ВинАвто{% endblock %}
+{% block page_title %}Оформить платёж{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Платёж по заказу #{{ order.pk }}</h1>
+    <a href="{% url 'order_detail' pk=order.pk %}" class="btn btn-secondary">← К заказу</a>
+</div>
+
+<div class="glass-card" style="max-width: 500px;">
+    <div class="mb-6">
+        <p><strong>Клиент:</strong> {{ order.client.name }}</p>
+        <p><strong>Авто:</strong> {{ order.car }}</p>
+        <p><strong>Итого к оплате:</strong> <span style="font-size:24px; font-weight:800; color: var(--accent-green);">{{ order.total_price|floatformat:2 }} ₽</span></p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Сумма (₽) *</label>
+            <input type="number" name="amount" class="form-input" step="0.01" value="{{ order.total_price }}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Способ оплаты *</label>
+            <select name="payment_method" class="form-select" required>
+                <option value="cash">Наличные</option>
+                <option value="card">Карта</option>
+                <option value="transfer">Банковский перевод</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Заметки</label>
+            <textarea name="notes" class="form-textarea" rows="2" placeholder="Необязательные заметки..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-success btn-lg" style="width:100%;">Оформить платёж</button>
+    </form>
+</div>
+{% endblock %}

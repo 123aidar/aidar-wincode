@@ -1,0 +1,51 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Автомобили — ВинАвто{% endblock %}
+{% block page_title %}Автомобили{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Автомобили</h1>
+    <div class="page-header-actions">
+        <form method="get" class="search-bar">
+            <input type="text" name="q" value="{{ q }}" placeholder="Поиск по номеру, марке, владельцу...">
+            <button type="submit" class="btn btn-secondary btn-sm">Поиск</button>
+        </form>
+        {% if request.user.role != 'mechanic' %}
+        <a href="{% url 'car_create' %}" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Добавить авто
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="glass-card">
+    <table class="data-table">
+        <thead>
+            <tr><th>Марка / Модель</th><th>Год</th><th>Номер</th><th>Владелец</th><th>VIN</th><th>Действия</th></tr>
+        </thead>
+        <tbody>
+            {% for car in cars %}
+            <tr>
+                <td><strong>{{ car.brand }} {{ car.model }}</strong></td>
+                <td>{{ car.year }}</td>
+                <td>{{ car.license_plate }}</td>
+                <td>{{ car.client.name }}</td>
+                <td class="text-sm text-muted">{{ car.vin|default:"—" }}</td>
+                <td>
+                    {% if request.user.role != 'mechanic' %}
+                    <a href="{% url 'car_edit' pk=car.pk %}" class="btn btn-secondary btn-sm">Редакт.</a>
+                    {% else %}—{% endif %}
+                    {% if request.user.role == 'admin' %}
+                    <form method="post" action="{% url 'car_delete' pk=car.pk %}" style="display:inline;" onsubmit="return confirm('Удалить? Это действие необратимо.')">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Удалить</button></form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted" style="text-align:center; padding:40px;">Автомобили не найдены.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

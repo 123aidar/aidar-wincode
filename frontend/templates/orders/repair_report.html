@@ -1,0 +1,48 @@
+﻿{% extends "base.html" %}
+{% block title %}Отчёт о ремонте — ВинАвто{% endblock %}
+{% block page_title %}Отчёт о ремонте{% endblock %}
+{% block content %}
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+    <h2>Отчёт о ремонте автомобиля</h2>
+    <div class="mb-2 text-muted">Заказ №{{ order.pk }} | Дата: {{ report.created_at|date:"d.m.Y H:i" }}</div>
+    <hr>
+    <div><b>Клиент:</b> {{ order.client.name }}</div>
+    <div><b>Автомобиль:</b> {{ order.car.brand }} {{ order.car.model }} ({{ order.car.license_plate }})</div>
+    <div><b>Исполнитель(и):</b> {% for m in report.mechanics.all %}{{ m.get_full_name|default:m.username }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</div>
+    <div><b>Поступил на ремонт:</b> {{ report.started_at|date:"d.m.Y H:i" }}</div>
+    <div><b>Завершён:</b> {{ report.finished_at|date:"d.m.Y H:i" }}</div>
+    <hr>
+    <div><b>Выполненные работы:</b>
+        <ul>
+        {% for s in order.order_services.all %}
+            <li>{{ s.service.name }} — {{ s.price }} ₽</li>
+        {% empty %}
+            <li>—</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div><b>Использованные запчасти:</b>
+        <table class="data-table">
+            <thead><tr><th>Запчасть</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>
+            <tbody>
+            {% for p in parts %}
+                <tr>
+                    <td>{{ p.part.name }}</td>
+                    <td>{{ p.quantity }}</td>
+                    <td>{{ p.price }} ₽</td>
+                    <td>{{ p.line_total }} ₽</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">—</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-2"><b>Итого:</b> {{ report.total_price }} ₽</div>
+    <div class="mt-2"><b>Примечания:</b> {{ order.repair_notes|default:"—" }}</div>
+    <div class="mt-4">
+        <a href="{% url 'order_detail' pk=order.pk %}" class="btn btn-secondary">← К заказу</a>
+        <a href="{% url 'repair_report_pdf' order_id=order.pk %}" class="btn btn-primary" target="_blank">Скачать PDF</a>
+    </div>
+</div>
+{% endblock %}

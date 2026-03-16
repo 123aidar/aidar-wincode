@@ -1,0 +1,42 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Платежи — ВинАвто{% endblock %}
+{% block page_title %}Платежи{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>История платежей</h1>
+</div>
+
+<div class="glass-card">
+    <table class="data-table">
+        <thead>
+            <tr><th>Дата</th><th>Заказ</th><th>Клиент</th><th>Способ</th><th class="text-right">Сумма</th><th>Заметки</th><th>Чек</th></tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.created_at|date:"d.m.Y H:i" }}</td>
+                <td><a href="{% url 'order_detail' pk=payment.order_id %}">#{{ payment.order_id }}</a></td>
+                <td>{{ payment.order.client.name }}</td>
+                <td>{{ payment.get_payment_method_display }}</td>
+                <td class="text-right"><strong>{{ payment.amount|floatformat:2 }} ₽</strong></td>
+                <td class="text-sm text-muted">{{ payment.notes|default:"—" }}</td>
+                <td>
+                    <a href="{% url 'payment_receipt' payment_id=payment.pk %}" target="_blank"
+                       style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.35);border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .2s;"
+                       onmouseover="this.style.background='rgba(16,185,129,0.28)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'">
+                        🧾 Чек
+                    </a>
+                    {% if request.user.role == 'admin' %}
+                    <form method="post" action="{% url 'payment_delete' pk=payment.pk %}" style="display:inline;margin-left:6px;" onsubmit="return confirm('Удалить? Это действие необратимо.')">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Удалить</button></form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-muted" style="text-align:center; padding:40px;">Платежей нет.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

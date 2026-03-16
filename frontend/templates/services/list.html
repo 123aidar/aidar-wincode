@@ -1,0 +1,51 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Услуги — ВинАвто{% endblock %}
+{% block page_title %}Услуги{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Каталог услуг</h1>
+    {% if request.user.role != 'mechanic' %}
+    <a href="{% url 'service_create' %}" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Добавить услугу
+    </a>
+    {% endif %}
+</div>
+
+<div class="glass-card">
+    <table class="data-table">
+        <thead>
+            <tr><th>Услуга</th><th>Описание</th><th>Длительность</th><th class="text-right">Цена</th><th>Статус</th>{% if request.user.role != 'mechanic' %}<th>Действия</th>{% endif %}</tr>
+        </thead>
+        <tbody>
+            {% for service in services %}
+            <tr>
+                <td><strong>{{ service.name }}</strong></td>
+                <td class="text-sm text-muted truncate" style="max-width:300px;">{{ service.description|default:"—" }}</td>
+                <td>{{ service.duration_minutes }} мин</td>
+                <td class="text-right"><strong>{{ service.price|floatformat:2 }} ₽</strong></td>
+                <td>
+                    {% if service.is_active %}
+                        <span class="badge badge-completed">Активна</span>
+                    {% else %}
+                        <span class="badge badge-pending">Неактивна</span>
+                    {% endif %}
+                </td>
+                {% if request.user.role != 'mechanic' %}
+                <td>
+                    <a href="{% url 'service_edit' pk=service.pk %}" class="btn btn-secondary btn-sm">Редакт.</a>
+                    {% if request.user.role == 'admin' %}
+                    <form method="post" action="{% url 'service_delete' pk=service.pk %}" style="display:inline;" onsubmit="return confirm('Удалить? Это действие необратимо.')">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Удалить</button></form>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted" style="text-align:center; padding:40px;">Услуги не определены.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

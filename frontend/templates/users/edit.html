@@ -1,0 +1,52 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Редактирование {{ edit_user.username }} — ВинАвто{% endblock %}
+{% block page_title %}Редактирование пользователя{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Редактирование: {{ edit_user.username }}</h1>
+    <a href="{% url 'users_list' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Логин</label>
+            <input type="text" class="form-input" value="{{ edit_user.username }}" disabled>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Имя</label>
+                <input type="text" name="first_name" class="form-input" value="{{ edit_user.first_name }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Фамилия</label>
+                <input type="text" name="last_name" class="form-input" value="{{ edit_user.last_name }}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-input" value="{{ edit_user.email }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Телефон</label>
+            <input type="text" name="phone" class="form-input" value="{{ edit_user.phone }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Роль *</label>
+            <select name="role" class="form-select" required>
+                <option value="mechanic" {% if edit_user.role == 'mechanic' %}selected{% endif %}>Механик</option>
+                <option value="manager" {% if edit_user.role == 'manager' %}selected{% endif %}>Менеджер</option>
+                <option value="admin" {% if edit_user.role == 'admin' %}selected{% endif %}>Администратор</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Новый пароль (оставьте пустым, чтобы не менять)</label>
+            <input type="password" name="password" class="form-input" minlength="8">
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
+    </form>
+</div>
+{% endblock %}

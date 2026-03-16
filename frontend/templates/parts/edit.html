@@ -1,0 +1,59 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Редактирование {{ part.name }} — ВинАвто{% endblock %}
+{% block page_title %}Редактирование запчасти{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Редактирование: {{ part.name }}</h1>
+    <a href="{% url 'parts_list' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Название запчасти *</label>
+            <input type="text" name="name" class="form-input" value="{{ part.name }}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Артикул</label>
+            <input type="text" name="part_number" class="form-input" value="{{ part.part_number }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Описание</label>
+            <textarea name="description" class="form-textarea" rows="2">{{ part.description }}</textarea>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Цена продажи (₽) *</label>
+                <input type="number" name="price" class="form-input" step="0.01" value="{{ part.price }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Себестоимость (₽)</label>
+                <input type="number" name="cost_price" class="form-input" step="0.01" value="{{ part.cost_price }}">
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Количество</label>
+                <input type="number" name="quantity" class="form-input" value="{{ part.quantity }}" min="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Минимальный остаток</label>
+                <input type="number" name="minimum_stock" class="form-input" value="{{ part.minimum_stock }}" min="0">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Поставщик</label>
+            <select name="supplier" class="form-select">
+                <option value="">Не указан</option>
+                {% for s in suppliers %}
+                <option value="{{ s.pk }}" {% if part.supplier_id == s.pk %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
+    </form>
+</div>
+{% endblock %}

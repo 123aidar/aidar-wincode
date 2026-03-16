@@ -1,0 +1,118 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Профиль — ВинАвто{% endblock %}
+{% block page_title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Мой профиль</h1>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 600px;">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Avatar section -->
+        <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:24px;">
+            <div class="profile-avatar-preview" id="avatarPreview">
+                {% if request.user.avatar %}
+                    <img src="{{ request.user.avatar.url }}" alt="Аватар" id="avatarImg">
+                {% else %}
+                    <span id="avatarLetter">{{ request.user.username|make_list|first|upper }}</span>
+                {% endif %}
+            </div>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
+                    Загрузить фото
+                    <input type="file" name="avatar" accept="image/*" style="display:none;" id="avatarInput">
+                </label>
+                {% if request.user.avatar %}
+                <label class="btn btn-danger btn-sm" style="cursor:pointer;">
+                    Удалить
+                    <input type="checkbox" name="remove_avatar" value="1" style="display:none;" id="removeAvatarCb">
+                </label>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Логин</label>
+            <input type="text" class="form-input" value="{{ request.user.username }}" disabled>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Роль</label>
+            <input type="text" class="form-input" value="{{ request.user.get_role_display }}" disabled>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Имя</label>
+                <input type="text" name="first_name" class="form-input" value="{{ request.user.first_name }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Фамилия</label>
+                <input type="text" name="last_name" class="form-input" value="{{ request.user.last_name }}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-input" value="{{ request.user.email }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Телефон</label>
+            <input type="text" name="phone" class="form-input" value="{{ request.user.phone }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Новый пароль (оставьте пустым, чтобы не менять)</label>
+            <input type="password" name="password" class="form-input" minlength="8">
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
+    </form>
+</div>
+
+<style>
+.profile-avatar-preview {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: var(--gradient-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: var(--glow-blue);
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+}
+.profile-avatar-preview img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('avatarInput');
+    const preview = document.getElementById('avatarPreview');
+    if (input) {
+        input.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Аватар" style="width:100%;height:100%;object-fit:cover;">';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    const removeBtn = document.getElementById('removeAvatarCb');
+    if (removeBtn) {
+        removeBtn.closest('label').addEventListener('click', function() {
+            removeBtn.checked = true;
+            preview.innerHTML = '<span>' + '{{ request.user.username|make_list|first|upper }}' + '</span>';
+        });
+    }
+});
+</script>
+{% endblock %}

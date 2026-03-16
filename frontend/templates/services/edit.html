@@ -1,0 +1,36 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Редактирование {{ service.name }} — ВинАвто{% endblock %}
+{% block page_title %}Редактирование услуги{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Редактирование: {{ service.name }}</h1>
+    <a href="{% url 'services_list' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Название услуги *</label>
+            <input type="text" name="name" class="form-input" value="{{ service.name }}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Описание</label>
+            <textarea name="description" class="form-textarea" rows="3">{{ service.description }}</textarea>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+                <label class="form-label">Цена (₽) *</label>
+                <input type="number" name="price" class="form-input" step="0.01" value="{{ service.price }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Длительность (минуты)</label>
+                <input type="number" name="duration_minutes" class="form-input" value="{{ service.duration_minutes }}">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
+    </form>
+</div>
+{% endblock %}

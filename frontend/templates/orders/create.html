@@ -1,0 +1,120 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Новый заказ — ВинАвто{% endblock %}
+{% block page_title %}Новый заказ{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Создать заказ-наряд</h1>
+    <a href="{% url 'orders_list' %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 700px;">
+    <form method="post" id="orderForm">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Клиент *</label>
+            <div style="position:relative;">
+                <input type="text" id="clientSearch" class="form-input" placeholder="Начните вводить имя или телефон..." autocomplete="off" style="width:100%;">
+                <input type="hidden" name="client" id="clientId" required>
+                <div id="clientDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:rgba(15,15,40,0.97);border:1px solid var(--border-color);border-radius:8px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+                    {% for c in clients %}
+                    <div class="client-opt" data-id="{{ c.pk }}" data-text="{{ c.name }} — {{ c.phone }}" style="padding:10px 14px;cursor:pointer;transition:background 0.15s;">{{ c.name }} — {{ c.phone }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Автомобиль *</label>
+            <select name="car" class="form-select" required id="carSelect">
+                <option value="">Выберите авто...</option>
+                {% for car in cars %}
+                <option value="{{ car.pk }}" data-client="{{ car.client_id }}">{{ car.brand }} {{ car.model }} ({{ car.license_plate }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Механик</label>
+            <select name="assigned_mechanic" class="form-select">
+                <option value="">Не назначен</option>
+                {% for m in mechanics %}
+                <option value="{{ m.pk }}">{{ m.get_full_name|default:m.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Начальный статус</label>
+            <select name="status" class="form-select">
+                {% for val, label in statuses %}
+                <option value="{{ val }}" {% if val == 'pending' %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Описание / Жалоба</label>
+            <textarea name="description" class="form-textarea" rows="4" placeholder="Опишите проблему..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Создать заказ</button>
+    </form>
+</div>
+
+<script>
+// ── Client autocomplete ──────────────────────────────────
+const clientSearch = document.getElementById('clientSearch');
+const clientIdInput = document.getElementById('clientId');
+const clientDropdown = document.getElementById('clientDropdown');
+const clientOpts = Array.from(document.querySelectorAll('.client-opt'));
+
+clientSearch.addEventListener('focus', function() {
+    filterDropdown(this.value);
+});
+
+clientSearch.addEventListener('input', function() {
+    clientIdInput.value = '';
+    filterDropdown(this.value);
+    filterCarsByClient('');
+});
+
+function filterDropdown(query) {
+    const q = query.trim().toLowerCase();
+    let visible = 0;
+    clientOpts.forEach(opt => {
+        const match = !q || opt.dataset.text.toLowerCase().includes(q);
+        opt.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    clientDropdown.style.display = (visible > 0) ? '' : 'none';
+}
+
+clientOpts.forEach(opt => {
+    opt.addEventListener('mouseenter', function() { this.style.background = 'rgba(139,92,246,0.25)'; });
+    opt.addEventListener('mouseleave', function() { this.style.background = ''; });
+    opt.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        clientSearch.value = this.dataset.text;
+        clientIdInput.value = this.dataset.id;
+        clientDropdown.style.display = 'none';
+        filterCarsByClient(this.dataset.id);
+    });
+});
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#clientSearch') && !e.target.closest('#clientDropdown')) {
+        clientDropdown.style.display = 'none';
+    }
+});
+
+// ── Car filtering ────────────────────────────────────────
+function filterCarsByClient(selectedClientId) {
+    const carSelect = document.getElementById('carSelect');
+    const opts = carSelect.querySelectorAll('option[data-client]');
+    opts.forEach(opt => {
+        opt.style.display = (!selectedClientId || opt.dataset.client === selectedClientId) ? '' : 'none';
+    });
+    if (selectedClientId && carSelect.value) {
+        const sel = carSelect.querySelector(`option[value="${carSelect.value}"]`);
+        if (sel && sel.dataset.client !== selectedClientId) carSelect.value = '';
+    }
+}
+</script>
+{% endblock %}

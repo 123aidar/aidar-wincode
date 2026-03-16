@@ -1,0 +1,38 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Редактирование {{ client.name }} — ВинАвто{% endblock %}
+{% block page_title %}Редактирование{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Редактирование: {{ client.name }}</h1>
+    <a href="{% url 'client_detail' pk=client.pk %}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="glass-card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">ФИО *</label>
+            <input type="text" name="name" class="form-input" value="{{ client.name }}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Телефон *</label>
+            <input type="text" name="phone" class="form-input" value="{{ client.phone }}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-input" value="{{ client.email }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Адрес</label>
+            <textarea name="address" class="form-textarea" rows="2">{{ client.address }}</textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Заметки</label>
+            <textarea name="notes" class="form-textarea" rows="2">{{ client.notes }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
+    </form>
+</div>
+{% endblock %}

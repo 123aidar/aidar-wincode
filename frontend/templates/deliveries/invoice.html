@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Накладная {{ delivery.invoice_number }}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 16px 80px;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+
+    .page-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+    }
+
+    /* Action buttons */
+    .actions { display: flex; gap: 12px; }
+    .btn {
+      padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-print { background: #6366f1; color: #fff; }
+    .btn-back  { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+    .btn:hover { opacity: 0.85; }
+
+    /* Document */
+    .doc {
+      width: 760px;
+      background: #fff;
+      color: #111;
+      border-radius: 2px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    /* Header band */
+    .doc-header {
+      background: #1e293b;
+      color: #fff;
+      padding: 26px 36px 22px;
+    }
+    .doc-header .company-name { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+    .doc-header .company-sub  { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .doc-header .meta-row {
+      display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px;
+    }
+    .doc-header .doc-title { font-size: 17px; font-weight: 700; color: #e2e8f0; text-transform: uppercase; letter-spacing: 1px; }
+    .doc-header .doc-num   { font-size: 13px; color: #94a3b8; margin-top: 3px; }
+    .doc-header .status-chip {
+      padding: 5px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      letter-spacing: .5px; text-transform: uppercase;
+    }
+    .chip-received  { background: #10b981; color: #fff; }
+    .chip-confirmed { background: #3b82f6; color: #fff; }
+    .chip-draft     { background: #f59e0b; color: #fff; }
+    .chip-cancelled { background: #ef4444; color: #fff; }
+
+    /* Body */
+    .doc-body { padding: 28px 36px; }
+
+    /* Info grid */
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+      border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 26px;
+    }
+    .ic {
+      padding: 12px 16px; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;
+    }
+    .ic:nth-child(2n) { border-right: none; }
+    .ic:nth-last-child(-n+2) { border-bottom: none; }
+    .ic .lbl { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+    .ic .val { font-size: 14px; font-weight: 600; }
+
+    /* Section title */
+    .section-t {
+      font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: #6b7280; margin-bottom: 8px;
+    }
+
+    /* Table */
+    table.inv { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    table.inv th {
+      background: #f3f4f6; color: #374151; font-size: 11px; text-transform: uppercase;
+      letter-spacing: .4px; padding: 9px 12px; text-align: left; border-bottom: 2px solid #e5e7eb;
+    }
+    table.inv th.r { text-align: right; }
+    table.inv td { padding: 9px 12px; border-bottom: 1px solid #f3f4f6; color: #1f2937; }
+    table.inv td.r { text-align: right; font-weight: 600; }
+    table.inv tr:last-child td { border-bottom: none; }
+    table.inv tfoot td {
+      padding: 12px; background: #f9fafb; border-top: 2px solid #e5e7eb; font-weight: 700;
+    }
+
+    /* Total bar */
+    .total-bar {
+      display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+      background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+      padding: 14px 20px; margin-top: 20px;
+    }
+    .total-bar .tl { font-size: 14px; color: #6b7280; font-weight: 500; }
+    .total-bar .tv { font-size: 24px; font-weight: 800; color: #111; }
+
+    /* Signatures */
+    .signatures {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;
+    }
+    .sig-block .sig-title { font-size: 12px; color: #9ca3af; margin-bottom: 8px; }
+    .sig-block .sig-name  { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .sig-block .sig-line  {
+      border-bottom: 1px solid #374151; height: 32px; margin-top: 4px;
+      position: relative;
+    }
+    .sig-block .sig-line::after {
+      content: 'подпись'; position: absolute; bottom: -18px; left: 0;
+      font-size: 10px; color: #9ca3af; letter-spacing: .5px;
+    }
+
+    /* Footer */
+    .doc-footer {
+      border-top: 1px solid #e5e7eb; margin-top: 28px; padding-top: 14px;
+      display: flex; justify-content: space-between; font-size: 11.5px; color: #9ca3af;
+    }
+
+    /* Print */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .actions { display: none !important; }
+      .doc { box-shadow: none; width: 100%; }
+      .doc-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      table.inv th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="actions">
+    <a href="{% url 'delivery_detail' pk=delivery.pk %}" class="btn btn-back">← К поставке</a>
+    <button class="btn btn-print" onclick="window.print()">🖨 Распечатать / PDF</button>
+  </div>
+
+  <div class="doc">
+
+    <!-- Header -->
+    <div class="doc-header">
+      <div class="company-name">ВинАвто</div>
+      <div class="company-sub">Профессиональный автосервис · ИНН 0000000000</div>
+      <div class="meta-row">
+        <div>
+          <div class="doc-title">Товарная накладная</div>
+          <div class="doc-num">{{ delivery.invoice_number }} &nbsp;·&nbsp; {{ delivery.delivery_date|date:"d.m.Y" }}</div>
+        </div>
+        <div class="status-chip
+          {% if delivery.status == 'received' %}chip-received
+          {% elif delivery.status == 'confirmed' %}chip-confirmed
+          {% elif delivery.status == 'cancelled' %}chip-cancelled
+          {% else %}chip-draft{% endif %}">
+          {{ delivery.get_status_display }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="doc-body">
+
+      <!-- Info -->
+      <div class="info-grid">
+        <div class="ic">
+          <div class="lbl">Поставщик</div>
+          <div class="val">{{ delivery.supplier.name }}</div>
+        </div>
+        <div class="ic">
+          <div class="lbl">Контактное лицо</div>
+          <div class="val">{{ delivery.supplier.contact_person|default:"—" }}</div>
+        </div>
+        <div class="ic">
+          <div class="lbl">Телефон поставщика</div>
+          <div class="val">{{ delivery.supplier.phone|default:"—" }}</div>
+        </div>
+        <div class="ic">
+          <div class="lbl">Дата поставки</div>
+          <div class="val">{{ delivery.delivery_date|date:"d.m.Y" }}</div>
+        </div>
+        <div class="ic">
+          <div class="lbl">Получатель</div>
+          <div class="val">ВинАвто</div>
+        </div>
+        <div class="ic">
+          <div class="lbl">Принял</div>
+          <div class="val">{{ delivery.created_by.get_full_name|default:delivery.created_by.username|default:"—" }}</div>
+        </div>
+      </div>
+
+      <!-- Items table -->
+      <div class="section-t">Перечень товаров</div>
+      <table class="inv">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Наименование</th>
+            <th style="width:110px">Арт. номер</th>
+            <th class="r" style="width:70px">Кол-во</th>
+            <th class="r" style="width:115px">Цена за ед.</th>
+            <th class="r" style="width:120px">Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in delivery.items.all %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.part.name }}</td>
+            <td style="color:#6b7280;font-size:12.5px;">{{ item.part.part_number|default:"—" }}</td>
+            <td class="r">{{ item.quantity }} шт.</td>
+            <td class="r">{{ item.unit_price|floatformat:2 }} ₽</td>
+            <td class="r">{{ item.line_total|floatformat:2 }} ₽</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Total -->
+      <div class="total-bar">
+        <span class="tl">ИТОГО С НДС:</span>
+        <span class="tv">{{ delivery.total_amount|floatformat:2 }} ₽</span>
+      </div>
+
+      {% if delivery.notes %}
+      <div style="margin-top:16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;font-size:13.5px;color:#374151;">
+        <span style="color:#9ca3af;font-size:11px;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Примечания</span>
+        {{ delivery.notes }}
+      </div>
+      {% endif %}
+
+      <!-- Signatures -->
+      <div class="signatures">
+        <div class="sig-block">
+          <div class="sig-title">Сдал (поставщик)</div>
+          <div class="sig-name">{{ delivery.supplier.contact_person|default:delivery.supplier.name }}</div>
+          <div class="sig-line"></div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-title">Принял (получатель)</div>
+          <div class="sig-name">{{ delivery.created_by.get_full_name|default:delivery.created_by.username|default:"_____________" }}</div>
+          <div class="sig-line"></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <span>Дата формирования: {{ delivery.created_at|date:"d.m.Y H:i" }}</span>
+        <span>ВинАвто &nbsp;·&nbsp; vinauto.ru</span>
+      </div>
+
+    </div><!-- /.doc-body -->
+  </div><!-- /.doc -->
+</div>
+</body>
+</html>

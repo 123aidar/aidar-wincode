@@ -1,0 +1,68 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Заказы — ВинАвто{% endblock %}
+{% block page_title %}Заказы{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Заказы</h1>
+    <div class="page-header-actions">
+        <form method="get" class="search-bar">
+            <input type="text" name="status" value="{{ status_filter }}" placeholder="Фильтр по статусу...">
+            <button type="submit" class="btn btn-secondary btn-sm">Фильтр</button>
+        </form>
+        {% if request.user.role != 'mechanic' %}
+        <a href="{% url 'order_create' %}" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Новый заказ
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Status filter chips -->
+<div class="flex gap-2 mb-6" style="flex-wrap: wrap;">
+    <a href="{% url 'orders_list' %}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-secondary{% endif %}">Все</a>
+    {% for val, label in statuses %}
+    <a href="?status={{ val }}" class="btn btn-sm {% if status_filter == val %}btn-primary{% else %}btn-secondary{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<div class="glass-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Авто</th>
+                <th>Статус</th>
+                <th>Механик</th>
+                <th>Сумма</th>
+                <th>Дата</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>#{{ order.pk }}</strong></td>
+                <td>{{ order.client.name }}</td>
+                <td>{{ order.car.brand }} {{ order.car.model }}</td>
+                <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                <td>{{ order.assigned_mechanic.get_full_name|default:"—" }}</td>
+                <td><strong>{{ order.total_price|floatformat:2 }} ₽</strong></td>
+                <td>{{ order.created_at|date:"d.m.Y" }}</td>
+                <td>
+                    <a href="{% url 'order_detail' pk=order.pk %}" class="btn btn-secondary btn-sm">Просмотр</a>
+                    {% if request.user.role == 'admin' %}
+                    <form method="post" action="{% url 'order_delete' pk=order.pk %}" style="display:inline;" onsubmit="return confirm('Удалить? Это действие необратимо.')">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Удалить</button></form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-muted" style="text-align:center; padding:40px;">Заказов не найдено.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

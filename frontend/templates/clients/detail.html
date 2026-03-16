@@ -1,0 +1,79 @@
+﻿{% extends "base.html" %}
+
+{% block title %}{{ client.name }} — ВинАвто{% endblock %}
+{% block page_title %}Карточка клиента{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ client.name }}</h1>
+    <div class="page-header-actions">
+        {% if request.user.role != 'mechanic' %}
+        <a href="{% url 'client_edit' pk=client.pk %}" class="btn btn-secondary">Редактировать</a>
+        {% endif %}
+        <a href="{% url 'clients_list' %}" class="btn btn-secondary">← Назад</a>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="glass-card">
+        <h4 style="color: var(--accent-cyan); margin-bottom:12px;">Контактные данные</h4>
+        <p><strong>Телефон:</strong> {{ client.phone }}</p>
+        <p><strong>Email:</strong> {{ client.email|default:"—" }}</p>
+        <p><strong>Адрес:</strong> {{ client.address|default:"—" }}</p>
+    </div>
+    <div class="glass-card">
+        <h4 style="color: var(--accent-green); margin-bottom:12px;">Статистика</h4>
+        <p><strong>Всего заказов:</strong> {{ client.total_orders }}</p>
+        <p><strong>Общая сумма:</strong> {{ client.total_spent|floatformat:2 }} ₽</p>
+        <p><strong>Клиент с:</strong> {{ client.created_at|date:"d.m.Y" }}</p>
+    </div>
+</div>
+
+{% if client.notes %}
+<div class="glass-card mb-6">
+    <h4 style="color: var(--accent-orange); margin-bottom:8px;">Заметки</h4>
+    <p>{{ client.notes }}</p>
+</div>
+{% endif %}
+
+<!-- Client's Cars -->
+<div class="glass-card mb-6">
+    <h4 style="color: var(--accent-purple); margin-bottom:16px;">Автомобили</h4>
+    <table class="data-table">
+        <thead><tr><th>Марка / Модель</th><th>Год</th><th>Номер</th><th>VIN</th></tr></thead>
+        <tbody>
+            {% for car in client.cars.all %}
+            <tr>
+                <td>{{ car.brand }} {{ car.model }}</td>
+                <td>{{ car.year }}</td>
+                <td>{{ car.license_plate }}</td>
+                <td>{{ car.vin|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-muted">Автомобили не зарегистрированы.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Client's Order History -->
+<div class="glass-card">
+    <h4 style="color: var(--accent-blue); margin-bottom:16px;">История заказов</h4>
+    <table class="data-table">
+        <thead><tr><th>ID</th><th>Авто</th><th>Статус</th><th>Сумма</th><th>Дата</th></tr></thead>
+        <tbody>
+            {% for order in client.orders.all %}
+            <tr style="cursor:pointer;" onclick="window.location.href='{% url 'order_detail' pk=order.pk %}'">
+                <td>#{{ order.pk }}</td>
+                <td>{{ order.car }}</td>
+                <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                <td>{{ order.total_price|floatformat:2 }} ₽</td>
+                <td>{{ order.created_at|date:"d.m.Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted">Заказов пока нет.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
