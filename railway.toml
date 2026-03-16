@@ -1,2 +1,3 @@
 [deploy]
+startCommand = "/entrypoint.sh"
 restartPolicyType = "on_failure"
