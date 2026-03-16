@@ -5,5 +5,9 @@ aptPkgs = [
   "libgdk-pixbuf2.0-dev",
   "libffi-dev",
   "shared-mime-info",
-  "pkg-config"
+  "pkg-config",
+  "libxcb1-dev",
+  "libxcb-render0-dev",
+  "libxcb-shm0-dev",
+  "libxcb-xfixes0-dev"
 ]
