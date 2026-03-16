@@ -20,5 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN cd backend && python manage.py collectstatic --noinput
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 8080
-CMD ["/bin/sh", "-c", "cd backend && python manage.py migrate --noinput && python manage.py seed_data 2>/dev/null; gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2"]
+ENTRYPOINT ["/entrypoint.sh"]
